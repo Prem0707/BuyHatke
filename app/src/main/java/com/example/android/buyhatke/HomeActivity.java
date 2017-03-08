@@ -1,10 +1,13 @@
 package com.example.android.buyhatke;
 
+import android.content.Intent;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 
 import android.view.Menu;
@@ -12,12 +15,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class HomeActivity extends AppCompatActivity {
 
     //Defining Variables
     private Toolbar toolbar;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
+    private ArrayList<AnArticle> articleList;
+    public static View.OnClickListener myOnClickListener;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,7 +115,30 @@ public class HomeActivity extends AppCompatActivity {
         //calling sync state is necessay or else your hamburger icon wont show up
         actionBarDrawerToggle.syncState();
 
+        /** for recyclerview start here*/
+        myOnClickListener = new MyOnClickListener();
 
+        recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        recyclerView.setHasFixedSize(true);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        ArrayList<AnArticle> articleList = getArticleData();
+
+        MyRecyclerViewAdapter myAdapter = new MyRecyclerViewAdapter(this , articleList);
+        recyclerView.setAdapter(myAdapter);
+
+
+    }
+
+    private ArrayList<AnArticle> getArticleData() {
+        articleList = new ArrayList<AnArticle>();
+        for (int i = 0; i < MyArticleData.articles.length; i++) {
+            String imageUrl = MyArticleData.articles[i];
+            articleList.add(new AnArticle(imageUrl));
+        }
+        return articleList;
     }
 
     @Override
@@ -131,4 +162,28 @@ public class HomeActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    private class MyOnClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+
+            String selectedArticleUrl = getSelectedArticleUrl(v);
+            showSelectedArticle(selectedArticleUrl);
+
+        }
+    }
+
+    private String getSelectedArticleUrl(View view) {
+        final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        int selectedItemPosition = recyclerView.getChildLayoutPosition(view);
+        String url = MyArticleData.articles[selectedItemPosition];
+        return url;
+    }
+
+    private void showSelectedArticle(String articleUrl) {
+        Intent intent = new Intent(this, FullImageActivity.class);
+        intent.putExtra("articleUrl", articleUrl);
+        startActivity(intent);
+    }
+
 }
